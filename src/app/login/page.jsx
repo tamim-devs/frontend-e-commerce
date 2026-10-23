@@ -197,8 +197,15 @@ const Page = () => {
         </div>
 
         {/* Security */}
-        <p className="mt-5 text-center text-xs text-[#89938c]">
-          🔒 Your account information is securely protected.
+        <p className="mt-5 text-center text-2xl text-[#89938c]">
+          Credential demo : for admin : gmail:admin@gmail.com ,
+          password : Password
+
+        </p>
+        <p className="mt-5 text-center text-2xl text-[#89938c]">
+          Credential demo : for buyer : gmail:buyer@gmail.com ,
+          password : Password
+
         </p>
       </div>
     </main>

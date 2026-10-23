@@ -69,23 +69,7 @@ export const getAllProducts = async ({
 
 
 
-export const getAllAdminProducts =  async()=>{
-    try {
-    const res = await fetch(`${baseUrl}/admin/products`,{
-        method: 'GET',
-        ext: { revalidate: 30 },
-    })
 
-     if (!res.ok) {
-      throw new Error("Failed to fetch products");
-    }
-
-    const result = await res.json()
-    return result
-    } catch (error) {
-    console.log('getFeturedProducts server problem',error)
-    }
-}
 
 
 export const getProductDetails = async(productId)=>{

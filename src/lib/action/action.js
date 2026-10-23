@@ -4,42 +4,63 @@ import { auth } from "@/lib/auth";
 import { baseUrl } from "@/lib/server/server";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const addProducts = async (formData) => {
-  const newProduct = Object.fromEntries(formData.entries());
-  const modiFiedData = {
-    name: newProduct.name,
-    category: newProduct.category,
-    unit: newProduct.unit,
-    description: newProduct.description,
-    price: parseFloat(newProduct.price),
-    stock: parseInt(newProduct.stock),
-    discountPrice: newProduct.discountPrice
-      ? parseFloat(newProduct.discountPrice)
-      : null,
-    image: newProduct.image,
-    isAvailable: parseInt(newProduct.stock) > 0,
-  };
+  try {
+    const newProduct = Object.fromEntries(formData.entries());
 
-  const {token} = await auth.api.getToken({
-    headers: await headers()
-  })
+    const modiFiedData = {
+      name: newProduct.name,
+      category: newProduct.category,
+      unit: newProduct.unit,
+      description: newProduct.description,
+      price: parseFloat(newProduct.price),
+      stock: parseInt(newProduct.stock),
+      discountPrice: newProduct.discountPrice
+        ? parseFloat(newProduct.discountPrice)
+        : null,
+      image: newProduct.image,
+      isAvailable: parseInt(newProduct.stock) > 0,
+    };
 
+    const { token } = await auth.api.getToken({
+      headers: await headers(),
+    });
 
-console.log("Token exists:", Boolean(token));
+    if (!token) {
+      throw new Error("Authentication required. Please log in.");
+    }
 
+    const res = await fetch(`${baseUrl}/products`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(modiFiedData),
+    });
 
-  const res = await fetch(`${baseUrl}/products`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      authorization: `Bearer ${token}`|| ""
-    },
-    body: JSON.stringify(modiFiedData),
-  });
-  const result = await res.json();
-  return result || {};
+    const result = await res.json();
 
+    if (!res.ok) {
+      throw new Error(
+        result.message || result.msg || "Failed to add product."
+      );
+    }
+
+  
+    revalidatePath("/products");
+    redirect("/products");
+  } catch (error) {
+ 
+    if (error?.digest?.startsWith("NEXT_REDIRECT")) {
+      throw error;
+    }
+
+    console.error("addProducts error:", error);
+    throw error;
+  }
 };
 
 
@@ -373,4 +394,52 @@ export const sendContactEmail = async (formData) => {
   }
 
   return data;
+};
+
+
+export const getAllAdminProducts = async () => {
+  try {
+    const { token } = await auth.api.getToken({
+      headers: await headers(),
+    });
+
+    if (!token) {
+      throw new Error("Please log in to access admin products.");
+    }
+
+    const res = await fetch(`${baseUrl}/admin/products`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    const result = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(
+        result.message ||
+          result.msg ||
+          `Failed to fetch products: ${res.status}`
+      );
+    }
+
+    if (Array.isArray(result)) {
+      return result;
+    }
+
+    if (Array.isArray(result?.products)) {
+      return result.products;
+    }
+
+    if (Array.isArray(result?.data)) {
+      return result.data;
+    }
+
+    throw new Error("Unexpected products response format.");
+  } catch (error) {
+    console.error("getAllAdminProducts error:", error);
+    throw error;
+  }
 };

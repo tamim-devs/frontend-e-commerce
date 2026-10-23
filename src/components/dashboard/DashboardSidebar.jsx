@@ -19,8 +19,6 @@ const DashboardSidebar = ({ role: propRole }) => {
     { name: "Add Product", href: "/dashboard/admin/add-products", icon: PackagePlus },
     { name: "Products", href: "/dashboard/admin/products", icon: Package },
     { name: "Orders", href: "/dashboard/admin/orders", icon: ShoppingBag },
-    { name: "Customers", href: "/dashboard/admin/customers", icon: Users },
-    { name: "Settings", href: "/dashboard/admin/settings", icon: Settings },
   ];
 
   const buyerMenu = [
